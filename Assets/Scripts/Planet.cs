@@ -14,15 +14,22 @@ public class Planet : MonoBehaviour
     [HideInInspector]
     public Rigidbody2D rigidBody;
 
-    private void Awake()
+
+    private void OnEnable()
     {
         rigidBody = GetComponent<Rigidbody2D>();
-        currentVelocity = initialVelocity;
+        StartCoroutine(WaitForManager());
     }
 
     private void Start()
     {
-        Universe.Instance.planets.Add(this);
+        currentVelocity = initialVelocity;
+    }
+
+
+    private void OnDisable()
+    {
+        Universe.Instance.planets.Remove(this);
     }
 
     public void UpdateVelocity(Planet[] allPlanets, float timeStep)
@@ -43,6 +50,17 @@ public class Planet : MonoBehaviour
 
     public void UpdatePosition(float timeStep)
     {
+        if (currentVelocity.x != currentVelocity.x || currentVelocity.y != currentVelocity.y)
+            return;
         rigidBody.position += currentVelocity * timeStep;
+    }
+
+    private IEnumerator WaitForManager()
+    {
+        while(!Universe.Instance)
+        {
+            yield return null;
+        }
+        Universe.Instance.planets.Add(this);
     }
 }
